@@ -1,9 +1,9 @@
-CXXFLAGS=-Wall -O0 -g -std=c++0x -I/usr/include/opencv
+CXXFLAGS=-Wall -O2 -g0 -std=c++0x -I/usr/include/opencv
 
 all: psflow
 
 psflow: main.o opengl_controller.o operation.o image_buffer.o detect.o cpu_utils.o webcam.o image_buffer_operation.o view_operation.o connected_space_operation.o
-	g++ $^ -o $@ ${CXXFLAGS} -lGL -lglut -lGLEW  -lhighgui -lGLU
+	g++ $^ -o $@ ${CXXFLAGS} -lGL -lglut -lGLEW  -lopencv_highgui -lGLU
 
 main.o: main.cpp operation.h detect.h
 

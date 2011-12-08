@@ -14,7 +14,7 @@ void OpenGlController::initializeGl(int argc, char** argv) {
 	//Glut stuff
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(ImageBuffer::width, ImageBuffer::height);
+	glutInitWindowSize(ImageBuffer::width*2, ImageBuffer::height*2);
 	glutCreateWindow("");
 
 	//OpenGL stuff
@@ -137,7 +137,7 @@ void OpenGlController::freeTexture(GLuint texId) {
 }
 	
 void OpenGlController::setDrawViewport(unsigned width, unsigned height) {
-	glViewport(0,0,width,height);
+	glViewport(0,0,width*2,height*2);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -219,7 +219,7 @@ void OpenGlController::getTextureData( GLuint texture, void* data ){
 }
 
 void OpenGlController::resizeWindow(unsigned width, unsigned height) {
-	glutReshapeWindow(width, height);
+	glutReshapeWindow(width*2, height*2);
 }
 void OpenGlController::draw() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

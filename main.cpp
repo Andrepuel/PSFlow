@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
 	OperationDefinition::createShader("canny", 1, 0, "canny.frag");
 	OperationDefinition::createShader("sobel", 1, 0, "sobel.frag");
 	OperationDefinition::createShader("diff", 2, 0, "diff.frag");
+	OperationDefinition::createShader("mult", 2, 0, "mult.frag");
 	OperationDefinition::createShader("distance", 2, 0, "distance.frag");
 	OperationDefinition::createShader("junction", 2, 0, "junction.frag");
 	OperationDefinition::createShader("threshold", 1, 2, "threshold.frag");
@@ -38,6 +39,7 @@ int main(int argc, char** argv) {
 	OperationDefinition::createShader("red", 1, 0, "red.frag");
 	OperationDefinition::createShader("equality", 1, 0, "equality.frag");
 	OperationDefinition::createShader("fewColors", 1, 1, "fewColors.frag");
+	OperationDefinition::createShader("gpu_connected_space", 1, 0, "gpu_connected_space.frag");
 
 	OperationDefinition::create("connected_space", OperationDefinitionPtr(new ConnectedSpaceOperation()));
 	OperationDefinition::create("detect", OperationDefinitionPtr(new InvaderDetectOperation()));
@@ -46,13 +48,14 @@ int main(int argc, char** argv) {
 
 	while( true ) {
 		Operation oneFrame("webcam");
+		Operation oneFrame2("webcam");
 
 		Operation preProcess
 		{"dilation",
 		{
 			{"maxGrayscale",
 			{
-				{"threshold",{0.8,1.0},
+				{"threshold",{0.7,1.0},
 				{
 					{"equality",
 					{
@@ -71,9 +74,14 @@ int main(int argc, char** argv) {
 		Operation view
 		{"view",
 		{
-			{"connected_space",
+			{"mult",
 			{
-				preProcess
+				oneFrame,
+				{"connected_space",
+				{
+					oneFrame
+				}
+				}
 			}
 			}
 		}
