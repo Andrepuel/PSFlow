@@ -7,6 +7,9 @@
 
 struct Color {
 	unsigned char r,g,b;
+	bool operator==(const Color& that) const {
+		return r==that.r&&g==that.g&&b==that.b;
+	}
 };
 
 typedef Matrix<Color> CpuImage;

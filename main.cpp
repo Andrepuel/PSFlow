@@ -10,15 +10,12 @@
 #include "webcam.h"
 #include "image_buffer_operation.h"
 #include "view_operation.h"
+#include "connected_space_operation.h"
 #include <sstream>
 
 const unsigned int BASE_IMAGES=10;
 
 int main(int argc, char** argv) {
-//	if( argc < 3 ) {
-//		std::cerr << "Diga arquivo de entrada e arquivo de saída." << std::endl;
-//		return 1;
-//	}
 	WebcamOperation* webcamop = new WebcamOperation(0);
 	webcamop->setSizeFrom();
 	OpenGlController::initializeGl(argc, argv);
@@ -26,8 +23,6 @@ int main(int argc, char** argv) {
 	
 //	ImageBuffer::setSizeFrom("Images/empty1.jpg");
 //	OperationDefinition::createImageLoader("input", argv[1]);
-//	OperationDefinition::createImageLoader("base1", "Images/empty1.jpg");
-//	OperationDefinition::createImageLoader("base2", "Images/empty2.jpg");
 //	OperationDefinition::createImageSaver("save", argv[2]);
 
 	OperationDefinition::createShader("grayscale", 1, 0, "grayscale.frag");
@@ -41,99 +36,49 @@ int main(int argc, char** argv) {
 	OperationDefinition::createShader("dilation", 1, 0, "dilation.frag");
 	OperationDefinition::createShader("erosion", 1, 0, "erosion.frag");
 	OperationDefinition::createShader("red", 1, 0, "red.frag");
+	OperationDefinition::createShader("equality", 1, 0, "equality.frag");
+	OperationDefinition::createShader("fewColors", 1, 1, "fewColors.frag");
 
+	OperationDefinition::create("connected_space", OperationDefinitionPtr(new ConnectedSpaceOperation()));
 	OperationDefinition::create("detect", OperationDefinitionPtr(new InvaderDetectOperation()));
 	OperationDefinition::create("webcam", OperationDefinitionPtr(webcamop));
 	OperationDefinition::create("view", OperationDefinitionPtr(new ViewOperation));
 
-	for( unsigned int i=0;i<10;++i) {
-		Operation consumeWeb("webcam");
-		consumeWeb.operate();
-		ImageBufferPool::instance().get();
-	}
-
-	for( unsigned int i=0;i<BASE_IMAGES;++i) {
-		std::stringstream name;
-		name << "base" << i;
-		OperationDefinition::create(name.str(), OperationDefinitionPtr(new ImageBufferOperation()));
-		
-		Operation oneFrame("webcam");
-
-		Operation saveBase
-		{name.str(),
-		{
-			oneFrame
-		}
-		};
-
-		Operation viewFrame
-		{"view",
-		{
-			{"red",
-			{
-				oneFrame
-			}
-			}
-		}
-		};
-
-		saveBase.operate();
-		viewFrame.operate();
-	}
-
 	while( true ) {
 		Operation oneFrame("webcam");
 
-		Operation cascadeJunction
-		{"junction",
+		Operation preProcess
+		{"dilation",
 		{
-			{"distance", {{"base0"}, oneFrame}},
-			{"distance", {{"base1"}, oneFrame}}
-		}
-		};
-		for(unsigned int i=2;i<BASE_IMAGES;++i) {
-			std::stringstream name;
-			name << "base" << i;
-
-			cascadeJunction = Operation(
-			"junction",
+			{"maxGrayscale",
 			{
-				cascadeJunction,
-				{"distance", {{name.str()}, oneFrame}}
-			}
-			);
-		}
-
-		Operation threshold
-		{"threshold", {0.25,1.0},
-		{
-			{"grayscale",
-			{
-				cascadeJunction
+				{"threshold",{0.8,1.0},
+				{
+					{"equality",
+					{
+						oneFrame
+					}
+					}
+				}
+				}
 			}
 			}
 		}
-		};
+		}
+		;
 
-		Operation cleaned = Operation::repeat
-		("erosion", 8,
-			Operation::repeat
-			("dilation", 6,
-				Operation::repeat("erosion",2, threshold)
-			)
-		);
 
 		Operation view
 		{"view",
 		{
-			{"detect",
+			{"connected_space",
 			{
-				cleaned,
-				oneFrame
+				preProcess
 			}
 			}
 		}
 		};
+		
 
 		view.operate();
 	}

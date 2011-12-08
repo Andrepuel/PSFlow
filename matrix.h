@@ -5,6 +5,12 @@
 #include <memory>
 #include <cmath>
 
+static int realMod(int x, int mod) {
+	int r = x % mod;
+	if( r < 0 ) r += mod;
+	return r;
+}
+
 template <typename T>
 class Matrix {
 public:
@@ -25,8 +31,8 @@ public:
 		}
 		
 		T& get() {
-			int realLine = line%matrix->lines;
-			int realColumn = column%matrix->columns;
+			int realLine = realMod(line,matrix->lines);
+			int realColumn = realMod(column,matrix->columns);
 			return matrix->values[ realLine*matrix->columns + realColumn ];
 		}
 		
@@ -53,11 +59,11 @@ public:
 		};
 		
 		int x() const {
-			return column;
+			return realMod(column,matrix->columns);
 		}
 		
 		int y() const {
-			return line;
+			return realMod(line,matrix->lines);
 		};
 		
 		double distance( const Cell& that ) const {
@@ -90,8 +96,8 @@ public:
 		}
 		
 		const T& get() {
-			int realLine = line%matrix->lines;
-			int realColumn = column%matrix->columns;
+			int realLine = realMod(line,matrix->lines);
+			int realColumn = realMod(column,matrix->columns);
 			return matrix->values[ realLine*matrix->columns + realColumn ];
 		}
 		
@@ -114,11 +120,11 @@ public:
 		};
 		
 		int x() const {
-			return column;
+			return realMod(column,matrix->columns);
 		}
 		
 		int y() const {
-			return line;
+			return realMod(line,matrix->lines);
 		};
 		
 		double distance( const Cell& that ) const {

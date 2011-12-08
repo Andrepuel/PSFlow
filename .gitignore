@@ -1,3 +1,4 @@
 psflow
 *.o
 *~
+*.swp

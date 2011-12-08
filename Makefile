@@ -2,7 +2,7 @@ CXXFLAGS=-Wall -O0 -g -std=c++0x -I/usr/include/opencv
 
 all: psflow
 
-psflow: main.o opengl_controller.o operation.o image_buffer.o detect.o cpu_utils.o webcam.o image_buffer_operation.o view_operation.o
+psflow: main.o opengl_controller.o operation.o image_buffer.o detect.o cpu_utils.o webcam.o image_buffer_operation.o view_operation.o connected_space_operation.o
 	g++ $^ -o $@ ${CXXFLAGS} -lGL -lglut -lGLEW  -lhighgui -lGLU
 
 main.o: main.cpp operation.h detect.h
@@ -20,6 +20,8 @@ webcam.o: webcam.h webcam.cpp
 image_buffer_operation.o: image_buffer_operation.cpp image_buffer_operation.h
 
 view_operation.o: view_operation.h view_operation.cpp
+
+connected_space_operation.o: connected_space_operation.h connected_space_operation.cpp
 
 clean:
 	rm *.o psflow
