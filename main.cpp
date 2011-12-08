@@ -74,14 +74,9 @@ int main(int argc, char** argv) {
 		Operation view
 		{"view",
 		{
-			{"mult",
+			{"connected_space",
 			{
-				oneFrame,
-				{"connected_space",
-				{
-					oneFrame
-				}
-				}
+				oneFrame
 			}
 			}
 		}

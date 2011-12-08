@@ -78,7 +78,8 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 
 		while( !recurse.empty() ) {
 			Recursive recursive = recurse.front();
-			undoer.push_back(recursive);
+			if( area < 250 )
+				undoer.push_back(recursive);
 			recurse.pop();
 			int ry = recursive.ry;
 			int rx = recursive.rx;
@@ -94,7 +95,7 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 			}	
 		};
 
-		if( area < 250 || area > 10000 ) {
+		if( area < 250 ) {
 			for( auto each = undoer.begin(); each != undoer.end(); ++each ) {
 				clusters(each->ry,each->rx) = 0;
 			}
@@ -115,7 +116,7 @@ void ConnectedSpaceOperation::operate( const std::vector<ImageBufferPtr>& inputL
 
 	for( unsigned int y = 0; y < input.height(); y++) {
 	for( unsigned int x = 0; x < input.width(); x++) {
-		if( clusters(y,x).get() > 0 ) {
+/*		if( clusters(y,x).get() > 0 ) {
 			backImage(y,x).get().r = 255;
 			backImage(y,x).get().g = 255;
 			backImage(y,x).get().b = 255;
@@ -123,8 +124,8 @@ void ConnectedSpaceOperation::operate( const std::vector<ImageBufferPtr>& inputL
 			backImage(y,x).get().r = 0;
 			backImage(y,x).get().g = 0;
 			backImage(y,x).get().b = 255;
-		}
-//		colorize( backImage(y,x), clusters(y,x).get() );
+		}*/
+		colorize( backImage(y,x), clusters(y,x).get() );
 
 	}}
 
