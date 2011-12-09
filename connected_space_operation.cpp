@@ -96,10 +96,10 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 			int ry = recursive.ry;
 			int rx = recursive.rx;
 
-			checkFor(left,recursive,-4,-1);
-			checkFor(top,recursive,1,-4);
-			checkFor(right,recursive,4,1);
-			checkFor(bottom,recursive,-1,4);
+			checkFor(right,recursive,-8,-0);
+			checkFor(top,recursive,0,-8);
+			checkFor(left,recursive,8,0);
+			checkFor(bottom,recursive,-0,8);
 
 			for( int line = -1; line <= 1; line++){
 			for( int column = -1; column <= 1; column++){
@@ -112,9 +112,9 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 			}	
 		};
 		clusters(left.ry,left.rx) = -2;
-		clusters(right.ry,right.rx) = -2;
-		clusters(top.ry,top.rx) = -2;
-		clusters(bottom.ry,bottom.rx) = -2;
+		clusters(top.ry,top.rx) = -3;
+		clusters(right.ry,right.rx) = -4;
+		clusters(bottom.ry,bottom.rx) = -5;
 
 		if( area < 250 ) {
 			for( auto each = undoer.begin(); each != undoer.end(); ++each ) {
@@ -137,12 +137,32 @@ void ConnectedSpaceOperation::operate( const std::vector<ImageBufferPtr>& inputL
 
 	for( unsigned int y = 0; y < input.height(); y++) {
 	for( unsigned int x = 0; x < input.width(); x++) {
-		if( clusters(y,x).get() == -2 ) {
-			for( int line=-2;line<=2;++line)
-			for( int col=-2;col<=2;++col) {
-				backImage(y,x).neighbour(line,col).get().r = 255;
-				backImage(y,x).neighbour(line,col).get().g = 255;
-				backImage(y,x).neighbour(line,col).get().b = 255;
+		if( clusters(y,x).get() < -1 ) {
+			for( int line=-4;line<=4;++line)
+			for( int col=-4;col<=4;++col) {
+				Color color;
+				color.r = 0;
+				color.g = 0;
+				color.b = 0;
+				if( std::abs(line) > 3 || std::abs(col) > 3 ) {
+				} else {
+					switch( clusters(y,x).get() ) {
+						case -2:
+						color.r = 255;
+						break;
+						case -3:
+						color.g = 255;
+						break;
+						case -4:
+						color.b = 255;
+						break;
+						case -5:
+						color.r = (color.g = (color.b = 255));
+						break;
+					}
+				}
+
+				backImage(y,x).neighbour(line,col).get() = color;
 			}
 		} else {
 			colorize( backImage(y,x), clusters(y,x).get() );
