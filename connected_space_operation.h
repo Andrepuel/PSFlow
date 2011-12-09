@@ -11,7 +11,7 @@ public:
 	static void colorize( Matrix<Color>::Cell pixel, int cluster );
 	static void clusterize( const Matrix<Color>& image, Matrix<int>& out);
 
-private:
+public:
 	struct Recursive;
 };
 

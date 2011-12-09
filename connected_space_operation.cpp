@@ -55,6 +55,13 @@ static int distance(const Color& colorA, const Color& colorB) {
 	return std::abs(colorA.r-colorB.r)+std::abs(colorA.g-colorB.g)+std::abs(colorA.b-colorB.b);
 }
 
+static void checkFor(ConnectedSpaceOperation::Recursive& greater, const ConnectedSpaceOperation::Recursive& candidate, int xFactor, int yFactor) {
+	if( (candidate.rx*xFactor+candidate.ry*yFactor) > (greater.rx*xFactor+greater.ry*yFactor) ) {
+		greater.ry = candidate.ry;
+		greater.rx = candidate.rx;
+	}
+};
+
 void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int>& clusters) {
 	assert(input.width() == clusters.width() );
 	assert(input.height() == clusters.height() );
@@ -71,6 +78,11 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 			continue;
 		clusters(y,x) = ++lastCluster;
 
+		Recursive left(y,x);
+		Recursive right(y,x);
+		Recursive top(y,x);
+		Recursive bottom(y,x);
+
 		int area=1;
 		std::queue<Recursive> recurse;
 		std::vector<Recursive> undoer;
@@ -84,6 +96,11 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 			int ry = recursive.ry;
 			int rx = recursive.rx;
 
+			checkFor(left,recursive,-4,-1);
+			checkFor(top,recursive,1,-4);
+			checkFor(right,recursive,4,1);
+			checkFor(bottom,recursive,-1,4);
+
 			for( int line = -1; line <= 1; line++){
 			for( int column = -1; column <= 1; column++){
 				if ( clusters(ry+line,rx+column).get() == -1 && distance(input(ry+line,rx+column).get(), input(ry,rx).get()) <= 20 ){
@@ -94,6 +111,10 @@ void ConnectedSpaceOperation::clusterize( const Matrix<Color>& input, Matrix<int
 			}
 			}	
 		};
+		clusters(left.ry,left.rx) = -2;
+		clusters(right.ry,right.rx) = -2;
+		clusters(top.ry,top.rx) = -2;
+		clusters(bottom.ry,bottom.rx) = -2;
 
 		if( area < 250 ) {
 			for( auto each = undoer.begin(); each != undoer.end(); ++each ) {
@@ -116,16 +137,16 @@ void ConnectedSpaceOperation::operate( const std::vector<ImageBufferPtr>& inputL
 
 	for( unsigned int y = 0; y < input.height(); y++) {
 	for( unsigned int x = 0; x < input.width(); x++) {
-/*		if( clusters(y,x).get() > 0 ) {
-			backImage(y,x).get().r = 255;
-			backImage(y,x).get().g = 255;
-			backImage(y,x).get().b = 255;
+		if( clusters(y,x).get() == -2 ) {
+			for( int line=-2;line<=2;++line)
+			for( int col=-2;col<=2;++col) {
+				backImage(y,x).neighbour(line,col).get().r = 255;
+				backImage(y,x).neighbour(line,col).get().g = 255;
+				backImage(y,x).neighbour(line,col).get().b = 255;
+			}
 		} else {
-			backImage(y,x).get().r = 0;
-			backImage(y,x).get().g = 0;
-			backImage(y,x).get().b = 255;
-		}*/
-		colorize( backImage(y,x), clusters(y,x).get() );
+			colorize( backImage(y,x), clusters(y,x).get() );
+		}
 
 	}}
 
