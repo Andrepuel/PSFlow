@@ -125,7 +125,8 @@ public:
 	}
 
 	static Operation repeat(const std::string& defId, unsigned int times, Operation depend) {
-		assert( times > 0 );
+		if( times == 0 )
+			return depend;
 		Operation actual(defId, {depend});
 		for( unsigned int i = 1; i < times; ++i) {
 			actual = Operation(defId,{actual});

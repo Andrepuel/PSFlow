@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
 	OperationDefinition::createShader("equality", 1, 0, "equality.frag");
 	OperationDefinition::createShader("fewColors", 1, 1, "fewColors.frag");
 	OperationDefinition::createShader("gpu_connected_space", 1, 0, "gpu_connected_space.frag");
+	OperationDefinition::createShader("thick", 1, 0, "thick.frag");
 
 	OperationDefinition::create("connected_space", OperationDefinitionPtr(new ConnectedSpaceOperation()));
 	OperationDefinition::create("detect", OperationDefinitionPtr(new InvaderDetectOperation()));
@@ -51,13 +52,13 @@ int main(int argc, char** argv) {
 		Operation oneFrame2("webcam");
 
 		Operation preProcess
-		{"dilation",
+		{"thick",
 		{
 			{"maxGrayscale",
 			{
-				{"threshold",{0.7,1.0},
+				{"threshold",{0.8,1.0},
 				{
-					{"equality",
+					{"sobel",
 					{
 						oneFrame
 					}
@@ -74,11 +75,8 @@ int main(int argc, char** argv) {
 		Operation view
 		{"view",
 		{
-			{"connected_space",
-			{
-				oneFrame
-			}
-			}
+//				oneFrame
+			preProcess
 		}
 		};
 		
