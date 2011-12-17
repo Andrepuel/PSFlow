@@ -156,10 +156,18 @@ public:
 	{
 	}
 
+	Matrix(unsigned int lines, unsigned int columns, const T& value)
+	: toDelete(true), values( new T[lines*columns] ), lines(lines), columns(columns)
+	{
+		for( unsigned i=0;i<lines*columns;++i) {
+			values[i] = value;
+		}
+	}
+
 	Matrix(const Matrix<T>& copy)
 	: toDelete(true), values( new T[copy.lines*copy.columns] ), lines(copy.lines), columns(copy.columns)
 	{
-		for( int i=0;i<copy.lines*copy.columns;++i) {
+		for( unsigned i=0;i<copy.lines*copy.columns;++i) {
 			values[i] = copy.values[i];
 		}
 	}

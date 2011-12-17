@@ -19,7 +19,7 @@ void ConnectedSpaceOperation::colorize( Matrix<Color>::Cell pixel, int cluster )
 		{128,128,0}
 	};
 	
-	if( cluster < clusters.size() ) {
+	if( unsigned(cluster) < clusters.size() ) {
 		pixel = clusters[cluster];
 		return;
 	}

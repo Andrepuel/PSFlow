@@ -11,6 +11,7 @@
 #include "image_buffer_operation.h"
 #include "view_operation.h"
 #include "connected_space_operation.h"
+#include "extract_rectangle_operation.h"
 #include <sstream>
 
 const unsigned int BASE_IMAGES=10;
@@ -46,23 +47,20 @@ int main(int argc, char** argv) {
 	OperationDefinition::create("detect", OperationDefinitionPtr(new InvaderDetectOperation()));
 	OperationDefinition::create("webcam", OperationDefinitionPtr(webcamop));
 	OperationDefinition::create("view", OperationDefinitionPtr(new ViewOperation));
+	OperationDefinition::create("extract_rectangle", OperationDefinitionPtr(new ExtractRectangleOperation()));
 
 	while( true ) {
 		Operation oneFrame("webcam");
 		Operation oneFrame2("webcam");
 
-		Operation preProcess
-		{"thick",
+		Operation border
+		{"maxGrayscale",
 		{
-			{"maxGrayscale",
+			{"threshold",{0.8,1.0},
 			{
-				{"threshold",{0.8,1.0},
+				{"sobel",
 				{
-					{"sobel",
-					{
-						oneFrame
-					}
-					}
+					oneFrame
 				}
 				}
 			}
@@ -71,12 +69,21 @@ int main(int argc, char** argv) {
 		}
 		;
 
+		Operation thicked
+		{"thick",
+		{
+			border
+		}
+		}
+		;
+
+		Operation extractRectangle("extract_rectangle", {thicked,border} );
 
 		Operation view
 		{"view",
 		{
-//				oneFrame
-			preProcess
+			extractRectangle
+		//	border
 		}
 		};
 		

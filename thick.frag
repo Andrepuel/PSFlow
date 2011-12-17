@@ -34,7 +34,6 @@ void main() {
 			sampleRel(0,-1)[channel] > 0.5 
 		)
 		{
-			gl_FragColor[channel] = 0.1;
 			continue;
 		}
 		gl_FragColor[channel] = 1.0;

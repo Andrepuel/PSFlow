@@ -7,6 +7,7 @@
 #include <map>
 #include <assert.h>
 #include <iostream>
+#include <boost/any.hpp>
 
 class OperationDefinition;
 typedef std::shared_ptr<OperationDefinition> OperationDefinitionPtr;
@@ -26,7 +27,9 @@ public:
 		return operations[id];
 	}
 
-	virtual void operate(const std::vector<ImageBufferPtr>& input, const std::vector<double>& params, ImageBufferPtr output)=0;
+	virtual void operate(const std::vector<ImageBufferPtr>& input, const std::vector<double>& params, ImageBufferPtr output, boost::any& extraOutputHolder ) {
+		operate(input,params,output);
+	}
 	virtual bool hasOutput() {
 		return true;
 	}
@@ -34,6 +37,7 @@ private:
 	static std::map<std::string,OperationDefinitionPtr> operations;
 
 protected:
+	virtual void operate(const std::vector<ImageBufferPtr>& input, const std::vector<double>& params, ImageBufferPtr output)=0;
 	void attachInput(const std::vector<ImageBufferPtr>& input) {
 		assert(input.size() == inputImages);
 
@@ -90,7 +94,7 @@ private:
 			if( definition->hasOutput() )
 				output = ImageBufferPool::instance().get();
 			
-			definition->operate(inputs, params, output);
+			definition->operate(inputs, params, output, extraData);
 			for( auto eachDepend = dependencies.begin(); eachDepend != dependencies.end(); ++eachDepend) {
 				(*eachDepend)->freeOutput();
 			}
@@ -105,6 +109,7 @@ private:
 		std::string tmpName;
 
 		ImageBufferPtr output;
+		boost::any extraData;
 	};
 	OperationDataPtr p;
 public:
@@ -134,6 +139,9 @@ public:
 		return actual;
 	}
 
+	boost::any& extraData() {
+		return p->extraData;
+	}
 private:
 	void setup(const std::string& defId, std::initializer_list<Operation> depends, std::initializer_list<double> params) {
 		p.reset( new OperationData );
