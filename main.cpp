@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 		Operation border
 		{"maxGrayscale",
 		{
-			{"threshold",{0.8,1.0},
+			{"threshold",{0.3,1.0},
 			{
 				{"sobel",
 				{
@@ -83,7 +83,6 @@ int main(int argc, char** argv) {
 		{"view",
 		{
 			extractRectangle
-		//	border
 		}
 		};
 		

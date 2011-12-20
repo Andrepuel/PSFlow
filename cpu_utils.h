@@ -6,7 +6,7 @@
 #include "image_buffer.h"
 
 struct Color {
-	unsigned char r,g,b;
+	unsigned char b,g,r;
 	bool operator==(const Color& that) const {
 		return r==that.r&&g==that.g&&b==that.b;
 	}

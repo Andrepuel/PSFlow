@@ -6,11 +6,27 @@
 #include <vector>
 
 struct Point {
-	Point() {
+	Point()
+	: next(NULL)
+	{
 	}
-	Point(int x, int y) : x(x), y(y) {
+	Point(int x, int y) : x(x), y(y),
+	next(NULL)
+	{
 	}
+
+	double distance(const Point& point2 ) const {
+		int dx = x-point2.x;
+		int dy = y-point2.y;
+		return std::sqrt( dx*dx+dy*dy );
+	}
+
+	bool operator==(const Point& that) const {
+		return this->x==that.x && this->y==that.y;
+	}
+
 	int x, y;
+	Point* next;
 };
 
 struct RectangleList {
