@@ -55,27 +55,6 @@ static double calcAngle(const Point& a, const Point& b, double minAngle) {
 	return x;
 }
 
-static void nFirst(const std::vector<Point>& in, unsigned n, std::vector<Point>& out, std::function<bool (const Point& a, const Point& b)> compare) {
-	if(in.size() < n) {
-		out = in;
-		return;
-	}
-	out.resize(n);
-	for( unsigned i=0;i<n;++i) {
-		out[i] = in[i];
-	}
-
-	for( auto each = in.begin(); each != in.end(); ++each ) {
-		for( auto eachPos = out.begin(); eachPos != out.end(); ++eachPos ) {
-			if( compare(*each,*eachPos) ) {
-				out.insert(eachPos,*each);
-				out.resize(n);
-				break;
-			}
-		}
-	}
-};
-
 static Point* convexHull(std::vector<Point>& points) {
 	Point* leftMost = &(*points.begin() );
 	for( auto each = points.begin(); each != points.end(); ++each ) {
@@ -185,19 +164,6 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 			continue;
 
 		Point* first = convexHull(rectangleList.points[i]);
-
-//		drawLine(*actual,*actual->next,out);
-/*		std::vector<Point> extractedRectangle;
-		nFirst(rectangleList.points[i],4,extractedRectangle,
-			[&](const Point& a, const Point& b) -> bool {
-				if( b.prev == NULL )
-					return false;
-				if( a.prev == NULL )
-					return true;
-				return a.angleCossine() < b.angleCossine();	
-			}
-		);*/
-
 
 		drawLine(*first,*first->next,out);
 		Point* each = first->next;
