@@ -7,11 +7,11 @@
 
 struct Point {
 	Point()
-	: next(NULL)
+	: next(NULL),prev(NULL)
 	{
 	}
 	Point(int x, int y) : x(x), y(y),
-	next(NULL)
+	next(NULL),prev(NULL)
 	{
 	}
 
@@ -25,8 +25,22 @@ struct Point {
 		return this->x==that.x && this->y==that.y;
 	}
 
+	double angleCossine(const Point& a, const Point& b) const {
+		double alen = distance(a);
+		double blen = distance(b);
+		double aunitX = (a.x-x)/alen;
+		double aunitY = (a.y-y)/alen;
+		double bunitX = (b.x-x)/blen;
+		double bunitY = (b.y-y)/blen;
+		return aunitX*bunitX+aunitY*bunitY;
+	}
+
+	double angleCossine() const {
+		return angleCossine(*next,*prev);
+	}
+
 	int x, y;
-	Point* next;
+	Point* next,* prev;
 };
 
 struct RectangleList {

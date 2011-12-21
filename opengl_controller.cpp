@@ -10,11 +10,14 @@ using std::string;
 
 static GLuint framebuffer;
 static GLuint rect[3];
+
+static const double windowScale=1;
+
 void OpenGlController::initializeGl(int argc, char** argv) {
 	//Glut stuff
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(ImageBuffer::width*2, ImageBuffer::height*2);
+	glutInitWindowSize(ImageBuffer::width*windowScale, ImageBuffer::height*windowScale);
 	glutCreateWindow("");
 
 	//OpenGL stuff
@@ -137,7 +140,7 @@ void OpenGlController::freeTexture(GLuint texId) {
 }
 	
 void OpenGlController::setDrawViewport(unsigned width, unsigned height) {
-	glViewport(0,0,width*2,height*2);
+	glViewport(0,0,width*windowScale,height*windowScale);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -219,7 +222,7 @@ void OpenGlController::getTextureData( GLuint texture, void* data ){
 }
 
 void OpenGlController::resizeWindow(unsigned width, unsigned height) {
-	glutReshapeWindow(width*2, height*2);
+	glutReshapeWindow(width*windowScale, height*windowScale);
 }
 void OpenGlController::draw() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

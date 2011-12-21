@@ -7,7 +7,7 @@ void main() {
 
 	int i = 0;
 	for(;i<3;++i) {
-		if( gl_FragColor[i] > other[i] )
+		if( gl_FragColor[i] < other[i] )
 			gl_FragColor[i] = other[i];
 	}
 	return;

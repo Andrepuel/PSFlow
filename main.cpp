@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
 	OperationDefinition::createShader("mult", 2, 0, "mult.frag");
 	OperationDefinition::createShader("distance", 2, 0, "distance.frag");
 	OperationDefinition::createShader("junction", 2, 0, "junction.frag");
+	OperationDefinition::createShader("union", 2, 0, "union.frag");
 	OperationDefinition::createShader("threshold", 1, 2, "threshold.frag");
 	OperationDefinition::createShader("dilation", 1, 0, "dilation.frag");
 	OperationDefinition::createShader("erosion", 1, 0, "erosion.frag");
@@ -51,7 +52,6 @@ int main(int argc, char** argv) {
 
 	while( true ) {
 		Operation oneFrame("webcam");
-		Operation oneFrame2("webcam");
 
 		Operation border
 		{"maxGrayscale",
@@ -82,7 +82,12 @@ int main(int argc, char** argv) {
 		Operation view
 		{"view",
 		{
-			extractRectangle
+			{"union",
+			{
+				extractRectangle,
+				oneFrame
+			}
+			}
 		}
 		};
 		

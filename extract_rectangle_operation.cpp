@@ -2,6 +2,7 @@
 #include "connected_space_operation.h"
 #include <queue>
 #include <cassert>
+#include <functional>
 
 ExtractRectangleOperation::~ExtractRectangleOperation() {
 }
@@ -54,6 +55,72 @@ static double calcAngle(const Point& a, const Point& b, double minAngle) {
 	return x;
 }
 
+static void nFirst(const std::vector<Point>& in, unsigned n, std::vector<Point>& out, std::function<bool (const Point& a, const Point& b)> compare) {
+	if(in.size() < n) {
+		out = in;
+		return;
+	}
+	out.resize(n);
+	for( unsigned i=0;i<n;++i) {
+		out[i] = in[i];
+	}
+
+	for( auto each = in.begin(); each != in.end(); ++each ) {
+		for( auto eachPos = out.begin(); eachPos != out.end(); ++eachPos ) {
+			if( compare(*each,*eachPos) ) {
+				out.insert(eachPos,*each);
+				out.resize(n);
+				break;
+			}
+		}
+	}
+};
+
+static Point* convexHull(std::vector<Point>& points) {
+	Point* leftMost = &(*points.begin() );
+	for( auto each = points.begin(); each != points.end(); ++each ) {
+		if( each->x < leftMost->x ||
+			( each->x == leftMost->x && each->y < leftMost->y )		
+		) {
+			leftMost = &(*each);
+		}
+		each->next = NULL;
+		each->prev = NULL;
+	}
+
+	Point* actual=leftMost;
+	double prevAngle=0.0;
+	while( actual->next == NULL ) {
+		Point* best=NULL;
+		double bestAngle = 0.0;
+		
+		for( auto eachOne = points.begin(); eachOne != points.end(); ++eachOne ) {
+			if( *eachOne == *actual )
+				continue;
+			if( best == NULL ) {
+				best = &(*eachOne);
+				bestAngle = calcAngle(*actual,*best,prevAngle);
+				continue;
+			} 
+			
+			double eachAngle = calcAngle(*actual,*eachOne,prevAngle);
+			if ( eachAngle < bestAngle || (eachAngle == bestAngle && actual->distance(*best) < actual->distance(*eachOne) )) {
+				best = &(*eachOne);
+				bestAngle = eachAngle;
+			}
+		}
+		if( best == NULL )
+			best = leftMost;
+		prevAngle=calcAngle(*actual,*best);
+		actual->next = best;
+		actual->next->prev = actual;
+		actual = actual->next;
+	}
+	assert( leftMost->prev != NULL );
+
+	return leftMost;
+};
+
 void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inputList, const std::vector<double>&, ImageBufferPtr output, boost::any& extraOutput ) {
 	assert( inputList.size() == 2 );
 
@@ -68,7 +135,7 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 	RectangleList& rectangleList = boost::any_cast<RectangleList&>(extraOutput);
 
 	Matrix<bool> clusters(thicked.height(),thicked.width(),false);
-
+#if 0
 	for( int y = 0; y < int(thicked.height()); ++y )
 	for( int x = 0; x < int(thicked.width()); ++x ) {
 		if( thicked(y,x).get().r > 0 ) {
@@ -77,7 +144,7 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 			out(y,x).get().r = 25;
 		}
 	}
-
+#endif
 	for( int y = 0; y < int(thicked.height()); ++y )
 	for( int x = 0; x < int(thicked.width()); ++x ) {
 		if( clusters(y,x).get() ) {
@@ -117,34 +184,27 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 		if( rectangleList.points[i].empty() )
 			continue;
 
-		Point* leftMost = &(*rectangleList.points[i].begin() );
-		for( auto each = rectangleList.points[i].begin(); each != rectangleList.points[i].end(); ++each ) {
-			if( each->x < leftMost->x ) {
-				leftMost = &(*each);
-			}
-		}
+		Point* first = convexHull(rectangleList.points[i]);
 
-		Point* actual=leftMost;
-		double prevAngle=0.0;
-		while( actual->next == NULL ) {
-			Point* best=NULL;
-			
-			for( auto eachOne = rectangleList.points[i].begin(); eachOne != rectangleList.points[i].end(); ++eachOne ) {
-				if( 
-					(best == NULL || calcAngle(*actual,*eachOne,prevAngle) < calcAngle(*actual,*best,prevAngle) ) &&
-					!(*eachOne == *actual)
-				) {
-					best = &(*eachOne);
-				}
+//		drawLine(*actual,*actual->next,out);
+/*		std::vector<Point> extractedRectangle;
+		nFirst(rectangleList.points[i],4,extractedRectangle,
+			[&](const Point& a, const Point& b) -> bool {
+				if( b.prev == NULL )
+					return false;
+				if( a.prev == NULL )
+					return true;
+				return a.angleCossine() < b.angleCossine();	
 			}
-			if( best == NULL )
-				best = leftMost;
-			drawLine(*actual,*best,out);
-			prevAngle=calcAngle(*actual,*best,-1.0);
-			actual->next = best;
-			actual = actual->next;
+		);*/
+
+
+		drawLine(*first,*first->next,out);
+		Point* each = first->next;
+		while( each != first ) {
+			drawLine(*each,*each->next,out);
+			each = each->next;
 		}
-		drawLine(*actual,*actual->next,out);
 	}
 
 	writeBuffer(out,output);
