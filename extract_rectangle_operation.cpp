@@ -28,14 +28,12 @@ static double distancePointLine( const Point& point, const Point& lineStart, con
 	return point.distance(intersection);
 }
 
-static void drawLine( const Point& lineStart, const Point& lineEnd, CpuImage& out ) {
+static void drawLine( const Point& lineStart, const Point& lineEnd, CpuImage& out, const Color& color=Color({255,255,255}) ) {
 	Point each;
 	for( each.y = std::min(lineStart.y,lineEnd.y); each.y <= std::max(lineEnd.y,lineStart.y); ++each.y )
 	for( each.x = std::min(lineStart.x,lineEnd.x); each.x <= std::max(lineEnd.x,lineStart.x); ++each.x ) {
 		if( distancePointLine(each,lineStart,lineEnd) < 1.1 ) {
-			out(each.y,each.x).get().r = 255;
-			out(each.y,each.x).get().g = 255;
-			out(each.y,each.x).get().b = 255;
+			out(each.y,each.x).get() = color;
 		}
 	}
 }
@@ -98,6 +96,12 @@ static Point* convexHull(std::vector<Point>& points) {
 	assert( leftMost->prev != NULL );
 
 	return leftMost;
+};
+
+static void checkFor(Point*& greater, Point* candidate, int xFactor, int yFactor) {
+	if( (candidate->x*xFactor+candidate->y*yFactor) > (greater->x*xFactor+greater->y*yFactor) ) {
+		greater = candidate;
+	}
 };
 
 void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inputList, const std::vector<double>&, ImageBufferPtr output, boost::any& extraOutput ) {
@@ -165,12 +169,21 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 
 		Point* first = convexHull(rectangleList.points[i]);
 
-		drawLine(*first,*first->next,out);
+		Point* left,* right,* top,* bottom;
+		left = first; right = first; top = first; bottom = first;
+
 		Point* each = first->next;
 		while( each != first ) {
-			drawLine(*each,*each->next,out);
+			checkFor(right,each,-8,-4);
+			checkFor(top,each,4,-8);
+			checkFor(left,each,8,4);
+			checkFor(bottom,each,-4,8);
 			each = each->next;
 		}
+		drawLine(*left,*top,out,Color::RED);
+		drawLine(*top,*right,out,Color::GREEN);
+		drawLine(*right,*bottom,out,Color::BLUE);
+		drawLine(*bottom,*left,out,Color::WHITE);
 	}
 
 	writeBuffer(out,output);
