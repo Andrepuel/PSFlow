@@ -24,6 +24,9 @@ struct Point {
 	bool operator==(const Point& that) const {
 		return this->x==that.x && this->y==that.y;
 	}
+	bool operator!=(const Point& that) const {
+		return this->x!=that.x || this->y!=that.y;
+	}
 
 	double angleCossine(const Point& a, const Point& b) const {
 		double alen = distance(a);

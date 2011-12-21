@@ -3,6 +3,7 @@
 #include <queue>
 #include <cassert>
 #include <functional>
+#include <algorithm>
 
 ExtractRectangleOperation::~ExtractRectangleOperation() {
 }
@@ -52,6 +53,28 @@ static double calcAngle(const Point& a, const Point& b, double minAngle) {
 	if( x < minAngle ) x += 4.0;
 	return x;
 }
+
+static void nFirst(const std::vector<Point>& in, unsigned n, std::vector<Point>& out, std::function<bool (const Point& a, const Point& b)> compare) {
+	if(in.size() < n) {
+		out = in;
+		std::sort(out.begin(),out.end(),compare);
+		return;
+	}
+	out.resize(n);
+	for( unsigned i=0;i<n;++i) {
+		out[i] = in[i];
+	}
+
+	for( auto each = in.begin(); each != in.end(); ++each ) {
+		for( auto eachPos = out.begin(); eachPos != out.end(); ++eachPos ) {
+			if( compare(*each,*eachPos) ) {
+				out.insert(eachPos,*each);
+				out.resize(n);
+				break;
+			}
+		}
+	}
+};
 
 static Point* convexHull(std::vector<Point>& points) {
 	Point* leftMost = &(*points.begin() );
@@ -164,26 +187,34 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 	}
 
 	for( unsigned int i=0;i<rectangleList.points.size(); ++i ) {
-		if( rectangleList.points[i].empty() )
+		std::vector<Point>& points = rectangleList.points[i];
+		if( points.empty() )
 			continue;
 
-		Point* first = convexHull(rectangleList.points[i]);
+		Point* first = convexHull(points);
 
-		Point* left,* right,* top,* bottom;
-		left = first; right = first; top = first; bottom = first;
-
-		Point* each = first->next;
+		drawLine(*first,*first->next,out,Color::RED);
+		Point* each=first->next;
 		while( each != first ) {
-			checkFor(right,each,-8,-4);
-			checkFor(top,each,4,-8);
-			checkFor(left,each,8,4);
-			checkFor(bottom,each,-4,8);
+			drawLine(*each,*each->next,out,Color::RED);
 			each = each->next;
 		}
-		drawLine(*left,*top,out,Color::RED);
-		drawLine(*top,*right,out,Color::GREEN);
-		drawLine(*right,*bottom,out,Color::BLUE);
-		drawLine(*bottom,*left,out,Color::WHITE);
+
+		std::vector<Point> biggest;
+		nFirst(points,8,biggest,
+			[](const Point& a, const Point& b) -> bool {
+				if( a.next == NULL )
+					return false;
+				if( b.next == NULL )
+					return true;
+				return a.distance(*a.next) > b.distance(*b.next);
+			}
+		);
+
+		for( auto each = biggest.begin(); each != biggest.end(); ++each ) {
+			if( each->next == NULL ) continue;
+			drawLine(*each,*each->next,out);
+		}
 	}
 
 	writeBuffer(out,output);
