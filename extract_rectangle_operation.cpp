@@ -234,7 +234,7 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 			assert(each != NULL);
 			assert(each->next != NULL);
 			assert(each->next->next != NULL);
-			if( Point::angleCossine(*each,*each->next,*each->next,*each->next->next) >= 0.90 ) {
+			if( Point::angleCossine(*each,*each->next,*each->next,*each->next->next) >= 0.95 ) {
 				Point* middle = each->next;
 				each->next = middle->next;
 				middle->prev = NULL;
@@ -273,6 +273,7 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 
 		std::vector<Point> rectangleCorners;
 		for( unsigned int i=0;i<4;++i ) {
+//			drawLine(orderedLines[i],*orderedLines[i].next,out,Color::WHITE);
 			rectangleCorners.push_back( Point::lineIntersect(orderedLines[i],*orderedLines[i].next,orderedLines[(i+1)%4],*orderedLines[(i+1)%4].next) );
 		}
 
