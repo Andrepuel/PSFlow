@@ -8,6 +8,28 @@
 ExtractRectangleOperation::~ExtractRectangleOperation() {
 }
 
+static double determinant(double aa, double ab, double ba, double bb) {
+	return aa*bb-ab*ba;
+}
+static double determinant(double aa, double ba) {
+	return aa*1.0-1.0*ba;
+}
+
+Point Point::lineIntersect(const Point& a0, const Point& a1, const Point& b0, const Point& b1) {
+	double aQuad = determinant(a0.x,a0.y,a1.x,a1.y);
+	double bQuad = determinant(b0.x,b0.y,b1.x,b1.y);
+	double aXQuad = determinant(a0.x, a1.x);
+	double aYQuad = determinant(a0.y, a1.y);
+	double bXQuad = determinant(b0.x, b1.x);
+	double bYQuad = determinant(b0.y, b1.y);
+
+	double divisor = determinant(aXQuad, aYQuad, bXQuad, bYQuad);
+	double x = determinant(aQuad, aXQuad, bQuad, bXQuad)/divisor;
+	double y = determinant(aQuad, aYQuad, bQuad, bYQuad)/divisor;
+
+	return Point(x,y);
+}
+
 static double distancePointLine( const Point& point, const Point& lineStart, const Point& lineEnd ) {
 	double lineMag;
 	double u;
@@ -31,8 +53,8 @@ static double distancePointLine( const Point& point, const Point& lineStart, con
 
 static void drawLine( const Point& lineStart, const Point& lineEnd, CpuImage& out, const Color& color=Color({255,255,255}) ) {
 	Point each;
-	for( each.y = std::min(lineStart.y,lineEnd.y); each.y <= std::max(lineEnd.y,lineStart.y); ++each.y )
-	for( each.x = std::min(lineStart.x,lineEnd.x); each.x <= std::max(lineEnd.x,lineStart.x); ++each.x ) {
+	for( each.y = std::max(std::min(lineStart.y,lineEnd.y),0); each.y <= std::min(std::max(lineEnd.y,lineStart.y),int(out.height())); ++each.y )
+	for( each.x = std::max(std::min(lineStart.x,lineEnd.x),0); each.x <= std::min(std::max(lineEnd.x,lineStart.x),int(out.height())); ++each.x ) {
 		if( distancePointLine(each,lineStart,lineEnd) < 1.1 ) {
 			out(each.y,each.x).get() = color;
 		}
@@ -192,16 +214,40 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 			continue;
 
 		Point* first = convexHull(points);
+		Point* longest = first;
 
-		drawLine(*first,*first->next,out,Color::RED);
 		Point* each=first->next;
+		unsigned amount = 0;
 		while( each != first ) {
-			drawLine(*each,*each->next,out,Color::RED);
+			if( longest->distance(*longest->next) < each->distance(*each->next) ) {
+				longest = each;
+			}
 			each = each->next;
+			++amount;
 		}
 
+		if( amount < 4 ) continue;
+
+		each = longest;
+		unsigned loops=0;
+		while( loops < amount ) {
+			assert(each != NULL);
+			assert(each->next != NULL);
+			assert(each->next->next != NULL);
+			if( Point::angleCossine(*each,*each->next,*each->next,*each->next->next) >= 0.90 ) {
+				Point* middle = each->next;
+				each->next = middle->next;
+				middle->prev = NULL;
+				middle->next = NULL;
+				each->next->prev = each;
+			} else {
+				loops++;
+				each = each->next;
+			}
+		};
+
 		std::vector<Point> biggest;
-		nFirst(points,8,biggest,
+		nFirst(points,4,biggest,
 			[](const Point& a, const Point& b) -> bool {
 				if( a.next == NULL )
 					return false;
@@ -211,9 +257,27 @@ void ExtractRectangleOperation::operate( const std::vector<ImageBufferPtr>& inpu
 			}
 		);
 
-		for( auto each = biggest.begin(); each != biggest.end(); ++each ) {
-			if( each->next == NULL ) continue;
-			drawLine(*each,*each->next,out);
+		if( biggest.size() != 4 || biggest[3].next == NULL ) continue;
+
+		std::vector<Point> orderedLines;
+		orderedLines.push_back( *biggest.begin() );
+		for( unsigned int i = 0; i < 3; ++i ) {
+			Point* closest = NULL;
+			for( auto each = biggest.begin(); each != biggest.end(); ++each ) {
+				if( closest == NULL || orderedLines[i].next->distance(*each) < orderedLines[i].next->distance(*closest) ) {
+					closest = &(*each);
+				}
+			}
+			orderedLines.push_back( *closest );
+		}
+
+		std::vector<Point> rectangleCorners;
+		for( unsigned int i=0;i<4;++i ) {
+			rectangleCorners.push_back( Point::lineIntersect(orderedLines[i],*orderedLines[i].next,orderedLines[(i+1)%4],*orderedLines[(i+1)%4].next) );
+		}
+
+		for( unsigned int i=0;i<4;++i ) {
+			drawLine(rectangleCorners[i],rectangleCorners[(i+1)%4],out,Color::WHITE);
 		}
 	}
 

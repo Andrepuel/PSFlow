@@ -28,14 +28,20 @@ struct Point {
 		return this->x!=that.x || this->y!=that.y;
 	}
 
-	double angleCossine(const Point& a, const Point& b) const {
-		double alen = distance(a);
-		double blen = distance(b);
-		double aunitX = (a.x-x)/alen;
-		double aunitY = (a.y-y)/alen;
-		double bunitX = (b.x-x)/blen;
-		double bunitY = (b.y-y)/blen;
+	static double angleCossine(const Point& a0, const Point& a1, const Point& b0, const Point& b1) {
+		double alen = a0.distance(a1);
+		double blen = b0.distance(b1);
+		double aunitX = (a1.x-a0.x)/alen;
+		double aunitY = (a1.y-a0.y)/alen;
+		double bunitX = (b1.x-b0.x)/blen;
+		double bunitY = (b1.y-b0.y)/blen;
 		return aunitX*bunitX+aunitY*bunitY;
+	}
+
+	static Point lineIntersect(const Point& a0, const Point& a1, const Point& b0, const Point& b1);
+
+	double angleCossine(const Point& a, const Point& b) const {
+		return angleCossine(*this,a,*this,b);
 	}
 
 	double angleCossine() const {
